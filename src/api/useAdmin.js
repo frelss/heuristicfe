@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://heuristicbe.onrender.com/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("adminToken");
@@ -342,6 +342,13 @@ export const useClearAdminCache = () => {
 
   return useMutation({
     mutationFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/admin/cache/clear`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) throw new Error("Cache clear failed");
+
       queryClient.invalidateQueries({ queryKey: ["routeHistory"] });
       queryClient.invalidateQueries({ queryKey: ["adminAlgorithmStats"] });
       queryClient.invalidateQueries({ queryKey: ["systemStatus"] });
@@ -349,7 +356,7 @@ export const useClearAdminCache = () => {
       queryClient.invalidateQueries({ queryKey: ["systemLogs"] });
       queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
 
-      return { success: true, message: "Admin cache cleared" };
+      return await response.json();
     },
   });
 };
