@@ -110,22 +110,21 @@ const SystemMonitoringSection = ({
 
   const handleRestartAPI = async () => {
     const confirmed = await toast.confirm({
-      title: "API újraindítása",
-      message: "Biztosan újra szeretnéd indítani az API-t?\nEz rövid ideig elérhetetlenné teheti a szolgáltatásokat.",
+      title: "API ellenőrzése",
+      message: "Futtatod a teljes rendszer ellenőrzést?",
       type: "warning",
-      confirmText: "Újraindítás",
+      confirmText: "Ellenőrzés",
       cancelText: "Mégse",
-      danger: true,
+      danger: false,
     });
 
     if (!confirmed) return;
 
     try {
-      await restartAPIMutation.mutateAsync();
-      toast.success("API újraindítás elindítva.", "Indítva");
+      await manualCheckMutation.mutateAsync();
+      toast.success("API ellenőrzés sikeres!", "Kész");
     } catch (error) {
-      console.error("API restart failed:", error);
-      toast.error(error?.message || "Hiba az API újraindításakor.", "Sikertelen");
+      toast.error(error?.message || "Hiba az ellenőrzéskor.", "Sikertelen");
     }
   };
 
