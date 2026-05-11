@@ -294,6 +294,20 @@ const MapView = () => {
       if (saved.coordinates?.length > 0) {
         const stats = saved.statistics || {};
 
+        // Reconstruct waypoint orders from saved waypoints
+        let originalWaypointOrder = [];
+        let optimizedWaypointOrder = [];
+
+        if (Array.isArray(saved.waypoints) && saved.waypoints.length > 0) {
+          const count = saved.waypoints.length;
+          originalWaypointOrder = Array.from({ length: count }, (_, i) => i);
+
+          const withOptimized = saved.waypoints.map((wp, i) => ({ original: i, optimized: wp.optimizedOrder ?? i })).sort((a, b) => a.optimized - b.optimized);
+
+          optimizedWaypointOrder = withOptimized.map((w) => w.original);
+        }
+
+        // Parse optimizationLog if it's a JSON string
         let optimizationLog = stats.optimizationLog || [];
         if (typeof optimizationLog === "string") {
           try {
@@ -304,26 +318,7 @@ const MapView = () => {
           }
         }
 
-        let originalWaypointOrder = stats.originalWaypointOrder || [];
-        if (typeof originalWaypointOrder === "string") {
-          try {
-            originalWaypointOrder = JSON.parse(originalWaypointOrder);
-          } catch (e) {
-            console.error("Failed to parse originalWaypointOrder:", e);
-            originalWaypointOrder = [];
-          }
-        }
-
-        let optimizedWaypointOrder = stats.optimizedWaypointOrder || [];
-        if (typeof optimizedWaypointOrder === "string") {
-          try {
-            optimizedWaypointOrder = JSON.parse(optimizedWaypointOrder);
-          } catch (e) {
-            console.error("Failed to parse optimizedWaypointOrder:", e);
-            optimizedWaypointOrder = [];
-          }
-        }
-
+        // Parse algorithmDetails if it's a JSON string
         let algorithmDetails = stats.algorithmDetails || null;
         if (typeof algorithmDetails === "string") {
           try {
@@ -334,6 +329,7 @@ const MapView = () => {
           }
         }
 
+        // Parse comparison if it's a JSON string
         let comparison = stats.comparison || null;
         if (typeof comparison === "string") {
           try {
@@ -424,8 +420,7 @@ const MapView = () => {
 
           {waypoints.map((waypoint, index) => {
             const position = Array.isArray(waypoint) ? waypoint : [waypoint.latitude, waypoint.longitude];
-            const icon = route?.optimizedWaypointOrder ? createDualNumberedIcon(index, route.optimizedWaypointOrder.indexOf(index)) : createNumberedWaypointIcon(index + 1, false);
-
+            const icon = route?.optimizedWaypointOrder?.length > 0 ? createDualNumberedIcon(index, route.optimizedWaypointOrder.indexOf(index)) : createNumberedWaypointIcon(index + 1, false);
             return (
               <Marker key={index} position={position} icon={icon}>
                 <Popup>
